@@ -14,7 +14,7 @@ class Game {
 
     updateGuessList(number) {
         this.guesses.push(number);
-        updateGuessListUI(this.guesses); // Llamar a la función que actualiza la lista en el HTML
+        updateGuessListUI(this.guesses); // Llama a la función que actualiza la lista en el HTML
     }
 
     checkGuess(number) {
@@ -44,6 +44,10 @@ function updateGuessListUI(guesses) {
 function toggleDarkMode() {
     const body = document.body;
     body.classList.toggle('dark-mode');
+    
+    // Guardar el estado del modo oscuro en localStorage como una cadena
+    const isDarkMode = body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDarkMode.toString());
 }
 
 function main() {
@@ -53,34 +57,57 @@ function main() {
     
     const game = new Game(minNumber, maxNumber, maxAttempts);
 
-    alert("Bienvenido al juego de adivinanzas. Tienes 3 intentos para adivinar el número.");
+    // Mostrar mensaje de bienvenida en el DOM
+    const welcomeMessage = document.createElement('p');
+    welcomeMessage.textContent = "Bienvenido al juego de adivinanzas. Tienes 3 intentos para adivinar el número.";
+    document.body.appendChild(welcomeMessage);
 
+    // Verificar si hay un estado de modo oscuro guardado en localStorage
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+
+    // Aplicar el modo oscuro si estaba activo previamente
+    if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+    }
+
+    // Agregar click al botón de modo oscuro
     document.getElementById('darkModeButton').addEventListener('click', toggleDarkMode);
 
-    while (game.attempts > 0) {
-        let numberChoice = prompt(`Elige un número entre ${minNumber} y ${maxNumber}`);
+    // Manejar la lógica  el DOM
+    const form = document.createElement('form');
+    const inputLabel = document.createElement('label');
+    inputLabel.textContent = `Elige un número entre ${minNumber} y ${maxNumber}: `;
+    const inputField = document.createElement('input');
+    inputField.type = 'number';
+    const submitButton = document.createElement('button');
+    submitButton.textContent = 'Adivinar';
+    form.appendChild(inputLabel);
+    form.appendChild(inputField);
+    form.appendChild(submitButton);
+    document.body.appendChild(form);
 
-        if (game.minNumber <= parseInt(numberChoice) && parseInt(numberChoice) <= game.maxNumber) {
-            let guess = parseInt(numberChoice);
-            let result = game.checkGuess(guess);
-
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const numberChoice = parseInt(inputField.value);
+        if (game.minNumber <= numberChoice && numberChoice <= game.maxNumber) {
+            const result = game.checkGuess(numberChoice);
             if (result === "win") {
                 alert("¡Felicidades! Has adivinado el número.");
-                document.getElementById('resultImage').innerHTML = '<img src="medios/ganaste.jpg" alt="Ganaste">';
-                document.getElementById('resultTitle').innerText = '¡Ganaste! ¡Felicidades!';
-                break;
             } else if (result === "lose") {
                 alert(`¡Se acabaron los intentos! El número correcto era ${game.randomNumber}.`);
-                document.getElementById('resultImage').innerHTML = '<img src="medios/perdiste.jpg" alt="Perdiste">';
-                document.getElementById('resultTitle').innerText = '¡Perdiste! ¡Intenta otra vez!';
-                break;
             } else {
                 alert(`Número incorrecto. Te quedan ${game.attempts} intentos.`);
             }
         } else {
             alert("Por favor, elige un número válido dentro del rango.");
         }
-    }
+        inputField.value = ''; // Limpiar el campo de entrada después de cada intento
+    });
+
+    // Mostrar la lista de números intentados en el DOM
+    const guessList = document.createElement('ul');
+    guessList.id = 'guessList';
+    document.body.appendChild(guessList);
 }
 
 window.addEventListener('load', main);
